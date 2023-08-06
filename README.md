@@ -1,10 +1,13 @@
 Passo 1:
-    Coloque os arquivos a serem enviados para o servidor dentro de 'client/sent';
+    Após clonar este repositório ou descompactar a pasta, instale a biblioteca sockets rodando `pip install sockets` ou `pip install -r requirements.txt`
 
 Passo 2:
-    Após isso, execute primeiro o código do servidor;
+    Coloque os arquivos a serem enviados para o servidor dentro de 'client/sent';
 
 Passo 3:
+    Após isso, execute primeiro o código do servidor;
+
+Passo 4:
     Quando o servidor printar "Server waiting files...", você executa o código do cliente em outra instância do terminal
 
 - Após isso, o cliente enviará os arquivos para o servidor;
