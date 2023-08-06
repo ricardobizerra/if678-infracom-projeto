@@ -50,7 +50,7 @@ def receive_file_array():
                     data += received
 
             # Escreve os dados recebidos no arquivo (escreve data em received_filename)
-            with open(filename, "wb") as f:
+            with open(f'server/received/{filename}', "wb") as f:
                 f.write(data)
 
             print(f"File {filename} received!")

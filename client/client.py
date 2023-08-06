@@ -14,9 +14,9 @@ def send_files(files):
     FILE_FINISHED = b"<<fileFinished>>"
 
     # Loop que permite o envio de vários arquivos
-    for filename in files:
-        file_size = os.path.getsize(filename) # Obtém o tamanho do arquivo
-
+    for file_path in files:
+        file_size = os.path.getsize(file_path) # Obtém o tamanho do arquivo
+        filename = file_path.split('/')[-1]
         # Criação do socket -> de acordo com o UDP
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -24,7 +24,7 @@ def send_files(files):
         sock.sendto(str(file_size).encode(), (host, port)) # Envia o tamanho do arquivo
 
         # Abre o arquivo para carregar seus dados
-        with open(filename, "rb") as f:
+        with open(file_path, "rb") as f:
             data = f.read(buffer_size) # Lê os dados que vão compor o 1º pacote (buffer_size bytes)
 
             # Loop que permite o envio de vários pacotes, enquanto houver dados
@@ -39,7 +39,7 @@ def send_files(files):
 
 def main():
     # Basta adicionar os arquivos a serem transferidos aqui, apenas lembre-se de que deve estar na mesma pasta do client.py
-    files = ["file.txt", "image.jpg"]
+    files = ["client/sent/file.txt", "client/sent/image.jpg"]
     send_files(files)
 
 if __name__ == "__main__":
