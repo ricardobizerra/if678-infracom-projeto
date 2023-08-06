@@ -7,6 +7,7 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Adiciona a opção
 
 def main():
     # Basta adicionar os arquivos a serem transferidos aqui, apenas lembre-se de que deve estar na mesma pasta do client.py
+    os.makedirs('client/received')
     files = ["client/sent/file.txt", "client/sent/image.jpg"]
     send_files(files)
     receive_files()

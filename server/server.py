@@ -84,6 +84,7 @@ def sent_file_to_client(file_path, client_address):
     sock.sendto(FILE_FINISHED, client_address)
 
 def main():
+    os.makedirs('server/received')
     receive_file_array()
 
 if __name__ == "__main__":
