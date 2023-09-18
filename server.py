@@ -1,9 +1,11 @@
 import socket
 import os
 
+from values import BUFFER_SIZE, IP_ADDRESS, SERVER_PORT
+
 # Configuração de servidor e buffer size (tamnho dos pacotes)
-host = "localhost"
-port = 8080
+host = BUFFER_SIZE
+port = SERVER_PORT
 
 # Criação do socket e bind do servidor -> de acordo com o UDP
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -12,7 +14,7 @@ sock.bind((host, port))
 
 # Recebimento dos arquivos pelo servidor
 def receive_file_array():
-    buffer_size = 1024
+    buffer_size = BUFFER_SIZE
 
     # Sinais de término de envio de arquivos (SEND_FINISHED) e de envio de um arquivo (FILE_FINISHED)
     SEND_FINISHED = b"<<sendFinished>>"
