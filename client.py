@@ -20,19 +20,21 @@ def main():
     #receive_files()
 
     comando=input()
-    number_users = 0
+    registered = False
 
     while True:
-        if comando.startswith("hi, meu nome eh"):
+        
+        if comando.startswith("hi, meu nome eh") and not registered:
             new_user = comando.split("hi, meu nome eh ")[1]
 
-            print(f"Ola, {new_user}!")
-            number_users += 1
-            port_number = 8081 + number_users
+            port_number = int(input(f"Ola, {new_user}! por favor, digite sua porta para conectar-se ao servidor: "))
+            
+            sock.bind(("localhost", port_number))
             print(f"connected to port {port_number}")
-            sock.bind(("localhost", 8081 + number_users))
 
-            comando = input()
+            registered = True
+
+        comando = input()
 
 
 
