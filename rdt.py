@@ -1,54 +1,75 @@
-import struct # what is struct? https://docs.python.org/3/library/struct.html
 import socket
+import struct
+
+from values import BUFFER_SIZE
 
 class Rdt3_0():
 
-    def __init__(self, socket:socket.socket):
+    def __init__(self, socket):
         self.sock = socket
 
     def extract(self, rcvpkt):
-        _, _, seq, msg_encoded = struct.unpack("I32s", rcvpkt)
-        msg = msg_encoded.decode()
-        return msg, seq
+        msg_size, ack, seq, msg_encoded = struct.unpack(f"i2i200s", rcvpkt)
+        msg = msg_encoded[:msg_size].decode()
+        return msg_size, ack, seq, msg
     
     def wait_for_seq(self, seq, initial_address=None):
-        while True:
-            rcvpkt, address = self.sock.recvfrom(1024)
-            rcvmsg, rcvseq = self.extract(rcvpkt)
-            if rcvseq == seq and (initial_address == None or address == initial_address):
-                return rcvmsg, address
-            
-    def wait_for_ack(self, address, seq, sndpkt):
-        while True:
-            try:
-                rcvpkt, _ = self.sock.recvfrom(1024)
-                rcvmsg, rcvseq = self.extract(rcvpkt)
-                if rcvseq == seq:
-                    return rcvmsg
-            except socket.timeout:
-                self.sock.sendto(sndpkt, address)
-    
-    def make_pkt(self, ack, seq, msg):
-        msg_encoded = msg.encode()
-        msg_size = len(msg_encoded)
+        state = f'S{seq}'
 
-        packet_made = struct.pack("I32s", msg_size, ack, seq, msg_encoded)
+        while (state == f'S{seq}'):
+            data, address = self.sock.recvfrom(BUFFER_SIZE)
+            _, _, return_seq, return_msg = self.extract(data)
+            
+            if (return_seq == seq) and ((initial_address == address) or (initial_address == None)):
+                sndpkt = self.make_pkt(ack=seq^1, seq=seq^1, msg='OK')
+                state = f'S{seq^1}'
+            else:
+                sndpkt = self.make_pkt(ack=seq, seq=seq, msg='NO')
+
+            self.sock.sendto(sndpkt, address)
+        
+        return return_msg, address
+            
+    def wait_for_ack(self, address, ack_value, sndpkt):
+        state = f'A{ack_value}'
+
+        while state == f'A{ack_value}':
+            try:
+                data, recv_address = self.sock.recvfrom(1024)
+                _, return_ack, _, _ = self.extract(data)
+
+                if (recv_address == address) and (return_ack == ack_value^1):
+                    self.sock.settimeout(None)
+                    state = f'A{ack_value^1}'
+
+                    return True
+                else:
+                    continue
+            
+            except socket.timeout:
+                self.sock.sendto(sndpkt, address) 
+                self.sock.settimeout(2)
+    
+    def make_pkt(self, ack:int, seq:int, msg:str):
+        msg_size = len(msg)
+        msg = msg.ljust(200, "#")
+        msg_encoded = msg.encode()
+
+        packet_made = struct.pack(f"i2i200s", msg_size, ack, seq, msg_encoded)
         return packet_made
     
     def send(self, msg, address):
         sndpkt = self.make_pkt(1, 0, 'ACK')
-
         self.sock.sendto(sndpkt, address)
         self.sock.settimeout(2)
         rcvpkt = self.wait_for_ack(address, 0, sndpkt)
         
         sndpkt = self.make_pkt(0, 1, msg)
-
         self.sock.sendto(sndpkt, address)
         self.sock.settimeout(2)
         rcvpkt = self.wait_for_ack(address, 1, sndpkt)
     
-    def deliver(self):
+    def receive(self):
         _, initial_address = self.wait_for_seq(0)
         data, address = self.wait_for_seq(1, initial_address)
 
