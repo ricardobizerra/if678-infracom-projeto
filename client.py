@@ -1,5 +1,5 @@
 import socket
-import os
+import threading
 
 from values import IP_ADDRESS, SERVER_PORT
 from rdt import Client
@@ -12,44 +12,20 @@ client = Client(sock)
 
 print("olá! fique à vontade para me enviar comandos")
 
-def main():
-
-    comando=input()
-    registered = False
-    user_name = ''
-
+def receive_messages():
     while True:
-        
-        if comando.startswith("hi, meu nome eh") and not registered:
-            splitted_command = comando.split(" ")
-            new_user = splitted_command[-1]
-            comando = ' '.join(splitted_command[:-1]) 
-            
-            message = f"{comando} | {new_user}"
-            client.send(message, (IP_ADDRESS, SERVER_PORT))
-            data, address = client.receive()
-            print(data)
+        server_response, address = client.receive()
+        print(server_response)
 
-            registered = True
-            user_name = new_user
-        
-        if registered:
+# Iniciar uma thread para receber mensagens do servidor em segundo plano
+message_thread = threading.Thread(target=receive_messages)
+message_thread.daemon = True  # Tornar a thread um daemon para que ela seja encerrada quando o programa principal terminar
+message_thread.start()
 
-            if comando == "bye":
-                message = f"{comando} | {user_name}"
-                client.send(message, (IP_ADDRESS, SERVER_PORT))
-                data, address = client.receive()
-                print(data)
-
-                client.sock.close()
-            
-            else:
-                message = f"{comando} | {user_name}"
-                client.send(message, (IP_ADDRESS, SERVER_PORT))
-                data, address = client.receive()
-                print(data)
-
-        comando = input()
+def main():
+    while True:
+        comando = input("Digite um comando: ")
+        client.send(comando, (IP_ADDRESS, SERVER_PORT))
 
 if __name__ == "__main__":
     main()
