@@ -2,11 +2,17 @@ import socket
 import struct
 
 from values import BUFFER_SIZE
+from get_time import get_time
 
 class Rdt3_0():
 
-    def __init__(self, socket):
+    def __init__(self, socket, isServer):
         self.sock = socket
+        self.isServer = isServer
+
+    def formatted_print(self, msg):
+        if (self.isServer): 
+            print(f"{msg} {get_time()}")
 
     def extract(self, rcvpkt):
         msg_size, ack, seq, msg_encoded = struct.unpack(f"i2i200s", rcvpkt)
@@ -15,16 +21,19 @@ class Rdt3_0():
     
     def wait_for_seq(self, seq, initial_address=None):
         state = f'S{seq}'
+        self.formatted_print(f"rdt_receiver | Esperando sequência {seq}...")
 
-        while (state == f'S{seq}'):
+        while state == f'S{seq}':
             data, address = self.sock.recvfrom(BUFFER_SIZE)
             _, _, return_seq, return_msg = self.extract(data)
             
             if (return_seq == seq) and ((initial_address == address) or (initial_address == None)):
                 sndpkt = self.make_pkt(ack=seq^1, seq=seq^1, msg='OK')
                 state = f'S{seq^1}'
+                self.formatted_print(f"rdt_receiver | Recebido pacote com sequência {return_seq}, enviando ACK {seq^1}...")
             else:
                 sndpkt = self.make_pkt(ack=seq, seq=seq, msg='NO')
+                self.formatted_print(f"rdt_receiver | Recebido pacote com sequência {return_seq}, enviando NACK {seq}...")
 
             self.sock.sendto(sndpkt, address)
         
@@ -41,6 +50,7 @@ class Rdt3_0():
                 if (recv_address == address) and (return_ack == ack_value^1):
                     self.sock.settimeout(None)
                     state = f'A{ack_value^1}'
+                    self.formatted_print(f"rdt_sender   | Recebido ACK {return_ack}, esperando próximo passo...")
 
                     return True
                 else:
@@ -49,7 +59,8 @@ class Rdt3_0():
             except socket.timeout:
                 self.sock.sendto(sndpkt, address) 
                 self.sock.settimeout(2)
-    
+                self.formatted_print(f"rdt_sender   | Timeout. Reenviando pacote com ACK {ack_value}...")
+
     def make_pkt(self, ack:int, seq:int, msg:str):
         msg_size = len(msg)
         msg = msg.ljust(200, "#")
@@ -77,8 +88,8 @@ class Rdt3_0():
 
 class Server(Rdt3_0):
     def __init__(self, socket):
-        super().__init__(socket)
+        super().__init__(socket, True)
 
 class Client(Rdt3_0):
     def __init__(self, socket):
-        super().__init__(socket)
+        super().__init__(socket, False)
