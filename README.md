@@ -1,16 +1,18 @@
 Passo 1:
-    Após clonar este repositório ou descompactar a pasta, instale a biblioteca sockets rodando `pip install sockets` ou `pip install -r requirements.txt`
+    Após clonar este repositório ou descompactar a pasta, instale a biblioteca sockets rodando `pip install sockets` ou `pip install -r requirements.txt`.
 
 Passo 2:
-    Coloque os arquivos a serem enviados para o servidor dentro de 'client/sent';
+    Abra um terminal e execute `python server.py` para iniciar o servidor.
 
 Passo 3:
-    Após isso, execute primeiro o código do servidor;
+    Abra outro terminal e execute `python client.py` para iniciar um cliente.
 
 Passo 4:
-    Quando o servidor printar "Server waiting files...", você executa o código do cliente em outra instância do terminal
+    Funcionalidades, dentro do client:
+        1. Para se registrar, digite `hi, meu nome eh user_nome`, substituindo "user_nome" pelo nome que deseja colocar e pressione enter.
+        2. Para listar os usuários, digite `list` e pressione enter.
+        3. Para sair, digite `bye` e pressione enter.
 
-- Após isso, o cliente enviará os arquivos para o servidor;
-
-- O servidor amazenará na pasta 'server/received' com o nome do arquivo modificado e irá enviá-lo de volta para o cliente, que por sua vez armazenará na pasta 'client/received'
+Passo 5:
+    Repita o passo 3 para iniciar outros clientes e testar a funcionalidade de chat.
 
