@@ -26,8 +26,8 @@ class UserList:
 
     # Remove um usuário da lista de usuários
     def removeUser(self, address) -> bool:
-        address = self.clientAddressToString(address)
         if self.userIdIsRegistered(address):
+            address = self.clientAddressToString(address)
             del self.list[address]
             return True
         return False
